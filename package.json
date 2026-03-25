@@ -26,5 +26,8 @@
   "dependencies": {
     "idb": "^8.0.1",
     "tesseract.js": "^5.1.1"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.60.0"
   }
 }

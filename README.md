@@ -76,6 +76,11 @@ Resolver dois problemas diários ao mesmo tempo:
 - A UI usa um **slot simulado** com tempo mínimo na tela; em produção você troca pelo SDK da rede (ex.: AdMob na Web ou no app nativo).
 - Opcional em dev: `VITE_DEV_UNLOCK_ALL=true` ou botões de teste para simular anúncio / desbloqueio gravado em `localStorage`.
 
+### Deploy (GitHub Actions)
+
+- O CI usa **`npm install`** com o `package-lock.json` (não `npm ci`), para evitar falha no Linux com **opcionais do Rollup** ([npm/cli#4828](https://github.com/npm/cli/issues/4828)).
+- Em `package.json`, **`optionalDependencies`** declara `@rollup/rollup-linux-x64-gnu` na mesma versão do Rollup que o Vite traz; ao atualizar o Vite, rode `npm ls rollup` e alinhe essa versão se o build no Actions quebrar.
+
 ### Por que isso é poderoso e simples
 - Todo mundo abre a geladeira e pensa “o que faço com isso?”
 - Responde exatamente esse momento de dor

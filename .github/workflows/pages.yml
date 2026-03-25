@@ -23,8 +23,9 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      # NODE_ENV=production no runner faz npm ci pular devDependencies → sem tsc/vite.
-      - run: npm ci
+      # NODE_ENV=production no runner omite devDependencies. npm ci + opcionais do Rollup no Linux
+      # quebram sem @rollup/rollup-linux-x64-gnu no lock (npm/cli#4828) — usamos npm install.
+      - run: npm install --no-audit --no-fund
         env:
           NODE_ENV: development
       - run: npm run validate-recipes
