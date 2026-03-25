@@ -78,6 +78,16 @@ Resolver dois problemas diários ao mesmo tempo:
 
 ### Deploy (GitHub Actions)
 
+**Configurar Pages no GitHub (obrigatório para o site abrir):**
+
+1. Abra o repositório no GitHub → **Settings** → **Pages** (menu lateral).
+2. Em **Build and deployment** → **Source**, escolha **GitHub Actions** — **não** use “Deploy from a branch” (isso não usa o workflow e o site pode dar 404 ou ficar vazio).
+3. Se aparecer pedido de aprovação do ambiente **`github-pages`**, aprove em **Settings** → **Environments** → `github-pages`.
+4. Confirme que o workflow **Deploy GitHub Pages** rodou com sucesso em **Actions** (jobs `build` e `deploy` verdes). Para forçar de novo: **Actions** → **Deploy GitHub Pages** → **Run workflow**.
+5. URL esperada: `https://<seu-usuario>.github.io/fridge-ghost/` (o `BASE_URL` no workflow já usa `/<nome-do-repo>/`).
+
+---
+
 - O CI usa **`npm install`** com o `package-lock.json` (não `npm ci`), para evitar falha no Linux com **opcionais do Rollup** ([npm/cli#4828](https://github.com/npm/cli/issues/4828)).
 - Em `package.json`, **`optionalDependencies`** declara `@rollup/rollup-linux-x64-gnu` na mesma versão do Rollup que o Vite traz; ao atualizar o Vite, rode `npm ls rollup` e alinhe essa versão se o build no Actions quebrar.
 
