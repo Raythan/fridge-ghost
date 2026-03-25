@@ -14,7 +14,7 @@ const MAX_URL_LENGTH = 7800;
 export function buildNewIssueUrl(title: string, body: string, labels?: string): string {
   const repo = getFeedbackRepo().replace(/^\/+|\/+$/g, '');
   const base = `https://github.com/${repo}/issues/new`;
-  let t = title.trim().slice(0, 240);
+  const t = title.trim().slice(0, 240);
   let b = body.trim();
   let qs = `title=${encodeURIComponent(t)}&body=${encodeURIComponent(b)}`;
   if (labels?.trim()) {

@@ -1,6 +1,8 @@
 # Pra Já  
 **Um app 100% offline que transforma sua geladeira em chef particular**
 
+**[Abrir no navegador (GitHub Pages)](https://raythan.github.io/fridge-ghost/)** · **[Código-fonte](https://github.com/Raythan/fridge-ghost)**
+
 ### Descrição em uma frase
 Fotografe sua geladeira ou digite os ingredientes que você tem → o app (rodando inteiramente no seu celular) te mostra imediatamente o que está prestes a vencer e gera receitas deliciosas e rápidas usando **apenas** o que você já possui.
 
@@ -70,10 +72,16 @@ Resolver dois problemas diários ao mesmo tempo:
 - Tailwind CSS para interface bonita e responsiva
 - PWA (instalável no celular)
 
+### Descoberta (SEO, partilha e GitHub)
+
+- **Open Graph / Twitter Card**: no build de produção, se existir `VITE_PUBLIC_CANONICAL_ORIGIN` (ex.: `https://SEU-USUARIO.github.io`), o Vite injeta `canonical`, `og:*` e `twitter:*` com imagem `pwa-512.png`. O workflow **Deploy GitHub Pages** define isso automaticamente a partir do dono do repositório. Com **domínio próprio**, altere esse valor no `pages.yml` (ou no comando de build) para a origem canónica real.
+- **GitHub → About**: preencha **Website** com a URL do Pages, **Description** numa linha (pode reutilizar a meta description do `index.html`) e **Topics**, por exemplo: `pwa`, `recipes`, `offline-first`, `food-waste`, `vite`, `typescript`, `brazil`, `portuguese`.
+
 ### Receitas e feedback
 - Catálogo: `data/recipes-free.json` + `data/recipes-premium.json` — o app **carrega tudo ao abrir** (sem paywall).
-- **Feedback**: em **Configurações** → **Enviar feedback** o usuário preenche um texto e o app abre o GitHub em **nova issue** (título + corpo prontos). Crie no repositório a label **`feedback`** para classificar (se a label não existir, o GitHub ignora o parâmetro).
-- Variável opcional: `VITE_FEEDBACK_REPO=dono/repo` para forks apontarem para o repositório certo (padrão: `Raythan/fridge-ghost`).
+- **Feedback de quem não usa GitHub**: [Web3Forms](https://web3forms.com) (plano gratuito). Crie um formulário, copie a **Access Key**, e no GitHub do repo vá em **Settings → Secrets and variables → Actions** e crie o secret **`WEB3FORMS_ACCESS_KEY`**. O deploy do Pages passa a variável `VITE_FEEDBACK_WEB3FORMS_ACCESS_KEY` no build; as mensagens chegam no e-mail que você configurou no Web3Forms. Localmente use `VITE_FEEDBACK_WEB3FORMS_ACCESS_KEY` no `.env`.
+- **Feedback para contribuidores**: em **Configurações** → **Enviar feedback** continua disponível **Abrir no GitHub** (nova issue com título e corpo). Crie a label **`feedback`** no repositório para classificar.
+- Variável opcional: `VITE_FEEDBACK_REPO=dono/repo` para forks apontarem o link de issue para o repo certo (padrão: `Raythan/fridge-ghost`).
 - Dev: `VITE_DEV_UNLOCK_ALL=true` mantém atalhos de desenvolvimento no cliente.
 
 ### Deploy (GitHub Actions)

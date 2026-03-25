@@ -1,6 +1,7 @@
 import { SURPRISE_MIN_MATCH } from '../constants';
 import { isDevUnlockAll } from '../entitlement/licenseClient';
 import { buildNewIssueUrl } from '../feedback/githubIssue';
+import { isPublicFeedbackConfigured, submitPublicFeedback } from '../feedback/web3formsSubmit';
 import { loadAllRecipes } from '../recipes/loadRecipes';
 import { fetchRecipeImageUrlCached } from '../recipes/recipeImage';
 import {
@@ -152,7 +153,9 @@ function appendSettingsPanelBody(parent: HTMLElement, onNavigateProgress: () => 
   const fbHint = document.createElement('p');
   fbHint.className = 'text-xs text-app-faint';
   fbHint.textContent =
-    'Sugestões, ideias ou algo que não funcionou direito — abre o GitHub pra você colar o texto numa issue nova.';
+    isPublicFeedbackConfigured()
+      ? 'Sugestões, ideias ou problemas — envio direto por e-mail, sem conta. Quem for dev pode abrir issue no GitHub.'
+      : 'Sugestões e ideias — quem usa GitHub pode abrir uma issue; o mantenedor pode ativar envio por e-mail (ver README).';
   parent.appendChild(fbHint);
 
   const fbBtn = btnSecondary('Enviar feedback', () => openFeedbackModal());
@@ -181,9 +184,16 @@ function openFeedbackModal(): void {
 
   const intro = document.createElement('p');
   intro.className = 'mt-2 text-sm text-app-muted';
-  intro.textContent =
-    'Não é relatório automático de erro — é o que você percebeu usando o app. No GitHub você confere e envia a issue.';
+  intro.textContent = isPublicFeedbackConfigured()
+    ? 'Conta pra gente o que você achou ou o que travou — enviamos por e-mail, sem precisar de conta em lugar nenhum.'
+    : 'Conta o que você percebeu usando o app. Quem trabalha com código pode abrir uma issue no repositório.';
   card.appendChild(intro);
+
+  const devNote = document.createElement('p');
+  devNote.className = 'mt-2 text-xs text-app-faint';
+  devNote.textContent =
+    'Não mandamos relatório automático de erro — só o que você escrever aqui. Desenvolvedores: use o botão do GitHub pra contribuir.';
+  card.appendChild(devNote);
 
   const typeLabel = document.createElement('label');
   typeLabel.className = 'mt-4 block text-xs font-medium text-app-muted';
@@ -222,28 +232,53 @@ function openFeedbackModal(): void {
   ta.placeholder = 'Ex.: “Seria legal filtrar por tempo” ou “o botão X não respondeu quando…”';
   card.appendChild(ta);
 
+  if (isPublicFeedbackConfigured()) {
+    const emLabel = document.createElement('label');
+    emLabel.className = 'mt-4 block text-xs font-medium text-app-muted';
+    emLabel.htmlFor = 'fg-fb-email';
+    emLabel.textContent = 'Seu e-mail (opcional — só se quiser resposta)';
+    card.appendChild(emLabel);
+
+    const emailInput = document.createElement('input');
+    emailInput.type = 'email';
+    emailInput.id = 'fg-fb-email';
+    emailInput.autocomplete = 'email';
+    emailInput.inputMode = 'email';
+    emailInput.className =
+      'mt-1 w-full rounded-xl border border-app-border bg-app-card px-3 py-2 text-sm text-app-text placeholder:text-app-faint';
+    emailInput.placeholder = 'nome@exemplo.com';
+    card.appendChild(emailInput);
+  }
+
   const err = document.createElement('p');
   err.className = 'mt-2 hidden text-sm text-app-warn';
   err.setAttribute('role', 'alert');
   card.appendChild(err);
 
-  const row = document.createElement('div');
-  row.className = 'mt-4 flex flex-col gap-2 sm:flex-row-reverse';
+  const actions = document.createElement('div');
+  actions.className = 'mt-4 flex flex-col gap-2';
 
   function close(): void {
     backdrop.remove();
   }
 
-  const submit = document.createElement('button');
-  submit.type = 'button';
-  submit.className =
-    'rounded-xl bg-app-accent px-4 py-3 font-medium text-app-on-accent';
-  submit.textContent = 'Abrir no GitHub';
+  const sendEmail = document.createElement('button');
+  sendEmail.type = 'button';
+  sendEmail.className =
+    'rounded-xl bg-app-accent px-4 py-3 font-medium text-app-on-accent disabled:opacity-50';
+  sendEmail.textContent = 'Enviar mensagem';
+
+  const githubBtn = document.createElement('button');
+  githubBtn.type = 'button';
+  githubBtn.className = isPublicFeedbackConfigured()
+    ? 'rounded-xl border border-app-border bg-app-surface px-4 py-3 text-sm font-medium text-app-muted'
+    : 'rounded-xl bg-app-accent px-4 py-3 font-medium text-app-on-accent';
+  githubBtn.textContent = 'Abrir no GitHub (contribuidores)';
 
   const cancel = document.createElement('button');
   cancel.type = 'button';
   cancel.className =
-    'rounded-xl border border-app-border bg-app-surface px-4 py-3 font-medium text-app-muted';
+    'rounded-xl border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-app-faint';
   cancel.textContent = 'Cancelar';
 
   function typeTitle(kind: string): string {
@@ -252,17 +287,8 @@ function openFeedbackModal(): void {
     return 'Pra Já — sugestão de melhoria';
   }
 
-  submit.addEventListener('click', () => {
-    const raw = ta.value.trim();
-    if (raw.length < 8) {
-      err.textContent = 'Escreve pelo menos uma linha (uns 8 caracteres) pra gente entender.';
-      err.classList.remove('hidden');
-      ta.focus();
-      return;
-    }
-    err.classList.add('hidden');
-    const kind = select.value;
-    const body = [
+  function issueBody(kind: string, raw: string): string {
+    return [
       `## Tipo`,
       types.find((x) => x.v === kind)?.l ?? kind,
       ``,
@@ -272,19 +298,69 @@ function openFeedbackModal(): void {
       `---`,
       `_Enviado pelo app Pra Já (feedback manual, sem log automático de erro)._`,
     ].join('\n');
-    const url = buildNewIssueUrl(typeTitle(kind), body, 'feedback');
+  }
+
+  function collectEmailInput(): string {
+    const el = card.querySelector<HTMLInputElement>('#fg-fb-email');
+    return el?.value.trim() ?? '';
+  }
+
+  if (isPublicFeedbackConfigured()) {
+    sendEmail.addEventListener('click', () => {
+      const raw = ta.value.trim();
+      if (raw.length < 8) {
+        err.textContent = 'Escreve pelo menos uma linha (uns 8 caracteres) pra gente entender.';
+        err.classList.remove('hidden');
+        ta.focus();
+        return;
+      }
+      err.classList.add('hidden');
+      const kind = select.value;
+      const typeL = types.find((x) => x.v === kind)?.l ?? kind;
+      sendEmail.disabled = true;
+      sendEmail.textContent = 'Enviando…';
+      void submitPublicFeedback({
+        typeLabel: typeL,
+        body: raw,
+        contactEmail: collectEmailInput() || undefined,
+      }).then((r) => {
+        sendEmail.disabled = false;
+        sendEmail.textContent = 'Enviar mensagem';
+        if (r.ok) {
+          showToast('Mensagem enviada. Valeu demais!', 'success');
+          close();
+        } else {
+          err.textContent = r.error;
+          err.classList.remove('hidden');
+        }
+      });
+    });
+    actions.appendChild(sendEmail);
+  }
+
+  githubBtn.addEventListener('click', () => {
+    const raw = ta.value.trim();
+    if (raw.length < 8) {
+      err.textContent = 'Escreve pelo menos uma linha (uns 8 caracteres) pra gente entender.';
+      err.classList.remove('hidden');
+      ta.focus();
+      return;
+    }
+    err.classList.add('hidden');
+    const kind = select.value;
+    const url = buildNewIssueUrl(typeTitle(kind), issueBody(kind, raw), 'feedback');
     window.open(url, '_blank', 'noopener,noreferrer');
     close();
   });
+  actions.appendChild(githubBtn);
 
   cancel.addEventListener('click', close);
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) close();
   });
 
-  row.appendChild(submit);
-  row.appendChild(cancel);
-  card.appendChild(row);
+  actions.appendChild(cancel);
+  card.appendChild(actions);
   backdrop.appendChild(card);
   document.body.appendChild(backdrop);
   ta.focus();

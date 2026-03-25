@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_DEV_UNLOCK_ALL?: string;
   /** `dono/repo` para link “nova issue” do feedback (forks: sobrescrever). */
   readonly VITE_FEEDBACK_REPO?: string;
+  /** Chave pública Web3Forms — envio de feedback por e-mail sem GitHub. */
+  readonly VITE_FEEDBACK_WEB3FORMS_ACCESS_KEY?: string;
 }
 
 interface ImportMeta {

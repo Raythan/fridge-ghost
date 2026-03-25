@@ -33,6 +33,8 @@ jobs:
         env:
           BASE_URL: /${{ github.event.repository.name }}/
           NODE_ENV: production
+          VITE_PUBLIC_CANONICAL_ORIGIN: https://${{ github.repository_owner }}.github.io
+          VITE_FEEDBACK_WEB3FORMS_ACCESS_KEY: ${{ secrets.WEB3FORMS_ACCESS_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
