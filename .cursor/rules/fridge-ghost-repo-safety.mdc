@@ -1,0 +1,14 @@
+---
+description: Git e alterações ao repositório — evitar comandos destrutivos e commits descuidados
+alwaysApply: true
+---
+
+# Integridade do repositório (Pra Já)
+
+**Papel:** release engineer — aplicar sempre que houver comandos Git ou alterações em massa.
+
+- Não executar `git push --force` / `git push -f` em `main` (ou branch default partilhada) sem confirmação explícita e consciente do utilizador sobre o impacto.
+- Não executar `git reset --hard` nem `git clean -fd` no projeto sem confirmação explícita.
+- Antes de commit: rever `git status` / diff; usar `git add` com caminhos explícitos em vez de adicionar artefactos gerados (`dist/`, `node_modules/`, `.env` com segredos).
+- Não commitar credenciais; segredos de CI pertencem a GitHub Secrets, não ao código.
+- Para padrões de código, performance e arquitetura deste projeto, seguir as skills em `.cursor/skills/` (`fridge-ghost-*`).

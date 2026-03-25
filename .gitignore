@@ -1,4 +1,5 @@
-.cursor/
+# Cursor — partilhar rules/skills no repo; plans costumam ser locais
+.cursor/plans/
 node_modules
 scripts/.cache
 dist
