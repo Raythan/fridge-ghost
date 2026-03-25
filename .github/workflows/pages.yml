@@ -29,6 +29,16 @@ jobs:
         env:
           NODE_ENV: development
       - run: npm run validate-recipes
+      # Aviso visível nos logs se o secret tiver nome errado ou não existir (o botão "Enviar mensagem" depende disto).
+      - name: Verificar secret Web3Forms (feedback por e-mail)
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::warning::Secret WEB3FORMS_ACCESS_KEY vazio ou inexistente. Em Settings → Secrets and variables → Actions → Repository secrets, crie WEB3FORMS_ACCESS_KEY com a Access Key da Web3Forms e rode o workflow de novo."
+          else
+            echo "WEB3FORMS_ACCESS_KEY definido — o build vai embutir o envio de feedback."
+          fi
+        env:
+          KEY: ${{ secrets.WEB3FORMS_ACCESS_KEY }}
       - run: npm run build
         env:
           BASE_URL: /${{ github.event.repository.name }}/
