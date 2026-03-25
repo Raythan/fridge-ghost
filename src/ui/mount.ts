@@ -1,12 +1,6 @@
 import { SURPRISE_MIN_MATCH } from '../constants';
-import {
-  devGrantSku,
-  ENTITLEMENT_SKU_BR,
-  hasFullCatalogAccess,
-  isDailyAdUnlockActive,
-  isDevUnlockAll,
-  recordDailyAdUnlock,
-} from '../entitlement/licenseClient';
+import { isDevUnlockAll } from '../entitlement/licenseClient';
+import { buildNewIssueUrl } from '../feedback/githubIssue';
 import { loadAllRecipes } from '../recipes/loadRecipes';
 import { fetchRecipeImageUrlCached } from '../recipes/recipeImage';
 import {
@@ -149,6 +143,151 @@ function appendSettingsPanelBody(parent: HTMLElement, onNavigateProgress: () => 
   appLabel.textContent = 'Cores do app';
   parent.appendChild(appLabel);
   appendThemeSwatchGrid(parent);
+
+  const fbLabel = document.createElement('p');
+  fbLabel.className = 'mt-6 text-xs font-semibold text-app-text';
+  fbLabel.textContent = 'Sua opinião';
+  parent.appendChild(fbLabel);
+
+  const fbHint = document.createElement('p');
+  fbHint.className = 'text-xs text-app-faint';
+  fbHint.textContent =
+    'Sugestões, ideias ou algo que não funcionou direito — abre o GitHub pra você colar o texto numa issue nova.';
+  parent.appendChild(fbHint);
+
+  const fbBtn = btnSecondary('Enviar feedback', () => openFeedbackModal());
+  fbBtn.className =
+    'mt-2 w-full rounded-2xl border border-app-border bg-app-surface px-4 py-3 text-center font-medium text-app-text';
+  parent.appendChild(fbBtn);
+}
+
+function openFeedbackModal(): void {
+  const backdrop = document.createElement('div');
+  backdrop.className =
+    'fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-4 sm:items-center';
+  backdrop.setAttribute('role', 'dialog');
+  backdrop.setAttribute('aria-modal', 'true');
+  backdrop.setAttribute('aria-labelledby', 'fg-fb-title');
+
+  const card = document.createElement('div');
+  card.className =
+    'max-h-[90vh] w-full max-w-md overflow-auto rounded-2xl border border-app-border bg-app-surface p-4 shadow-xl';
+
+  const title = document.createElement('h2');
+  title.id = 'fg-fb-title';
+  title.className = 'font-display text-lg font-semibold text-app-text';
+  title.textContent = 'Feedback';
+  card.appendChild(title);
+
+  const intro = document.createElement('p');
+  intro.className = 'mt-2 text-sm text-app-muted';
+  intro.textContent =
+    'Não é relatório automático de erro — é o que você percebeu usando o app. No GitHub você confere e envia a issue.';
+  card.appendChild(intro);
+
+  const typeLabel = document.createElement('label');
+  typeLabel.className = 'mt-4 block text-xs font-medium text-app-muted';
+  typeLabel.htmlFor = 'fg-fb-type';
+  typeLabel.textContent = 'Tipo';
+  card.appendChild(typeLabel);
+
+  const select = document.createElement('select');
+  select.id = 'fg-fb-type';
+  select.className =
+    'mt-1 w-full rounded-xl border border-app-border bg-app-card px-3 py-2.5 text-sm text-app-text';
+  const types: { v: string; l: string }[] = [
+    { v: 'sugestao', l: 'Sugestão de melhoria' },
+    { v: 'ideia', l: 'Ideia nova' },
+    { v: 'problema', l: 'Algo não funcionou bem' },
+  ];
+  for (const { v, l } of types) {
+    const o = document.createElement('option');
+    o.value = v;
+    o.textContent = l;
+    select.appendChild(o);
+  }
+  card.appendChild(select);
+
+  const taLabel = document.createElement('label');
+  taLabel.className = 'mt-4 block text-xs font-medium text-app-muted';
+  taLabel.htmlFor = 'fg-fb-body';
+  taLabel.textContent = 'O que você quer dizer?';
+  card.appendChild(taLabel);
+
+  const ta = document.createElement('textarea');
+  ta.id = 'fg-fb-body';
+  ta.rows = 5;
+  ta.className =
+    'mt-1 w-full resize-y rounded-xl border border-app-border bg-app-card px-3 py-2 text-sm text-app-text placeholder:text-app-faint';
+  ta.placeholder = 'Ex.: “Seria legal filtrar por tempo” ou “o botão X não respondeu quando…”';
+  card.appendChild(ta);
+
+  const err = document.createElement('p');
+  err.className = 'mt-2 hidden text-sm text-app-warn';
+  err.setAttribute('role', 'alert');
+  card.appendChild(err);
+
+  const row = document.createElement('div');
+  row.className = 'mt-4 flex flex-col gap-2 sm:flex-row-reverse';
+
+  function close(): void {
+    backdrop.remove();
+  }
+
+  const submit = document.createElement('button');
+  submit.type = 'button';
+  submit.className =
+    'rounded-xl bg-app-accent px-4 py-3 font-medium text-app-on-accent';
+  submit.textContent = 'Abrir no GitHub';
+
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className =
+    'rounded-xl border border-app-border bg-app-surface px-4 py-3 font-medium text-app-muted';
+  cancel.textContent = 'Cancelar';
+
+  function typeTitle(kind: string): string {
+    if (kind === 'ideia') return 'Pra Já — ideia';
+    if (kind === 'problema') return 'Pra Já — problema / mal funcionamento';
+    return 'Pra Já — sugestão de melhoria';
+  }
+
+  submit.addEventListener('click', () => {
+    const raw = ta.value.trim();
+    if (raw.length < 8) {
+      err.textContent = 'Escreve pelo menos uma linha (uns 8 caracteres) pra gente entender.';
+      err.classList.remove('hidden');
+      ta.focus();
+      return;
+    }
+    err.classList.add('hidden');
+    const kind = select.value;
+    const body = [
+      `## Tipo`,
+      types.find((x) => x.v === kind)?.l ?? kind,
+      ``,
+      `## Descrição`,
+      raw,
+      ``,
+      `---`,
+      `_Enviado pelo app Pra Já (feedback manual, sem log automático de erro)._`,
+    ].join('\n');
+    const url = buildNewIssueUrl(typeTitle(kind), body, 'feedback');
+    window.open(url, '_blank', 'noopener,noreferrer');
+    close();
+  });
+
+  cancel.addEventListener('click', close);
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) close();
+  });
+
+  row.appendChild(submit);
+  row.appendChild(cancel);
+  card.appendChild(row);
+  backdrop.appendChild(card);
+  document.body.appendChild(backdrop);
+  ta.focus();
 }
 
 function openSettingsPanel(): void {
@@ -234,7 +373,7 @@ function rerender(): void {
 }
 
 const RESULTS_HELP_TEXT =
-  'Aqui eu te mostro no máximo 8 receitas — as mais rápidas primeiro e as que mais batem com o que você tem (não é lista aleatória). Anúncio só deixa mais pratos disponíveis no app, não muda esse limite de 8. Quer sorte? Usa “Me surpreende” lá embaixo.';
+  'Aqui eu te mostro no máximo 8 receitas — as mais rápidas primeiro e as que mais batem com o que você tem (não é lista aleatória). Quer sorte? Usa “Me surpreende” lá embaixo.';
 
 /** Título “Ideias pra hoje” + ícone com tooltip explicativo. */
 function renderIdeiasPraHojeHeader(shell: HTMLElement): void {
@@ -310,172 +449,18 @@ function renderIdeiasPraHojeHeader(shell: HTMLElement): void {
   shell.appendChild(titleRow);
 }
 
-function adMinViewSeconds(): number {
-  const n = Number(import.meta.env.VITE_AD_MIN_SECONDS);
-  if (Number.isFinite(n) && n >= 0) return Math.min(Math.max(Math.floor(n), 3), 120);
-  return 8;
-}
-
-/** Simula tela de anúncio recompensado; em produção substitua o slot por SDK (AdMob, etc.). */
-function openRewardedAdModal(onComplete: () => void): void {
-  const backdrop = document.createElement('div');
-  backdrop.className =
-    'fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-4 sm:items-center';
-  backdrop.setAttribute('role', 'dialog');
-  backdrop.setAttribute('aria-modal', 'true');
-  backdrop.setAttribute('aria-labelledby', 'fg-ad-title');
-
-  const card = document.createElement('div');
-  card.className =
-    'max-h-[90vh] w-full max-w-md overflow-auto rounded-2xl border border-app-border bg-app-surface p-4 shadow-xl';
-
-  const title = document.createElement('h2');
-  title.id = 'fg-ad-title';
-  title.className = 'font-display text-lg font-semibold text-app-text';
-  title.textContent = 'Patrocinador';
-  card.appendChild(title);
-
-  const sub = document.createElement('p');
-  sub.className = 'mt-2 text-sm text-app-muted';
-  sub.textContent =
-    'Esse espaço é onde entra o anúncio de verdade — por enquanto é só simulação.';
-  card.appendChild(sub);
-
-  const slot = document.createElement('div');
-  slot.className =
-    'mt-4 flex min-h-[180px] items-center justify-center rounded-xl border border-dashed border-app-border bg-app-card-alt px-3 text-center text-sm text-app-faint';
-  slot.textContent = 'Espaço do anúncio (banner ou vídeo recompensado)';
-  card.appendChild(slot);
-
-  const status = document.createElement('p');
-  status.className = 'mt-4 text-center text-sm font-medium text-app-text';
-  card.appendChild(status);
-
-  const closeRow = document.createElement('div');
-  closeRow.className = 'mt-4 flex flex-col gap-2 sm:flex-row-reverse';
-
-  let left = adMinViewSeconds();
-  const unlockBtn = document.createElement('button');
-  unlockBtn.type = 'button';
-  unlockBtn.disabled = true;
-  unlockBtn.className =
-    'rounded-xl bg-app-accent px-4 py-3 font-medium text-app-on-accent opacity-60';
-  unlockBtn.textContent = `Liberar receitas (${left}s)`;
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.type = 'button';
-  cancelBtn.className =
-    'rounded-xl border border-app-border bg-app-surface px-4 py-3 font-medium text-app-muted';
-  cancelBtn.textContent = 'Agora não';
-
-  let timer: ReturnType<typeof setInterval> | null = null;
-
-  function cleanup(): void {
-    backdrop.remove();
-    if (timer !== null) {
-      clearInterval(timer);
-      timer = null;
-    }
-  }
-
-  timer = setInterval(() => {
-    left -= 1;
-    if (left <= 0) {
-      if (timer !== null) {
-        clearInterval(timer);
-        timer = null;
-      }
-      unlockBtn.disabled = false;
-      unlockBtn.className =
-        'rounded-xl bg-app-accent px-4 py-3 font-medium text-app-on-accent';
-      unlockBtn.textContent = 'Liberar receitas';
-      status.textContent = 'Beleza — confirma aí embaixo.';
-    } else {
-      unlockBtn.textContent = `Liberar receitas (${left}s)`;
-      status.textContent = `Dá uma olhada no anúncio… faltam ${left}s`;
-    }
-  }, 1000);
-
-  status.textContent = `Dá uma olhada no anúncio… faltam ${left}s`;
-
-  unlockBtn.addEventListener('click', () => {
-    if (unlockBtn.disabled) return;
-    recordDailyAdUnlock();
-    recipesCache = null;
-    cleanup();
-    onComplete();
-  });
-
-  cancelBtn.addEventListener('click', () => {
-    cleanup();
-  });
-
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) cleanup();
-  });
-
-  closeRow.appendChild(unlockBtn);
-  closeRow.appendChild(cancelBtn);
-  card.appendChild(closeRow);
-  backdrop.appendChild(card);
-  document.body.appendChild(backdrop);
-}
-
-async function renderHomeUnlockCard(wrap: HTMLElement): Promise<void> {
-  wrap.replaceChildren();
-  wrap.className = 'mt-6';
-  const full = await hasFullCatalogAccess();
-  const daily = isDailyAdUnlockActive();
-
-  if (full && daily) {
-    wrap.className = '';
-    return;
-  }
-
-  const box = document.createElement('div');
-  box.className = 'rounded-2xl border border-app-border bg-app-card p-4';
-
-  if (!full) {
-    const t = document.createElement('p');
-    t.className = 'text-sm font-medium text-app-text';
-    t.textContent = 'Quer muito mais receitas?';
-    box.appendChild(t);
-
-    const p = document.createElement('p');
-    p.className = 'mt-2 text-sm text-app-muted';
-    p.textContent =
-      'Assiste um anúncio uma vez por dia e libera as receitas extras até o próximo dia — sem cartão, sem cadastro.';
-    box.appendChild(p);
-
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className =
-      'mt-4 w-full rounded-xl bg-app-accent px-4 py-3 font-display font-semibold text-app-on-accent shadow-md';
-    b.textContent = 'Assistir anúncio e liberar receitas';
-    b.addEventListener('click', () => {
-      openRewardedAdModal(() => rerender());
-    });
-    box.appendChild(b);
-    wrap.appendChild(box);
-    return;
-  }
-
-  const t = document.createElement('p');
-  t.className = 'text-sm text-app-muted';
-  if (isDevUnlockAll()) {
-    t.textContent = 'Dev: VITE_DEV_UNLOCK_ALL ligado — catálogo completo.';
-  } else {
-    t.textContent = 'Todas as receitas estão liberadas por aqui.';
-  }
-  box.appendChild(t);
-  wrap.appendChild(box);
-}
-
 export function mount(root: HTMLElement): void {
   rootRef = root;
   const renderApp = () => render(root);
   (window as unknown as { __fg_render?: () => void }).__fg_render = renderApp;
   renderApp();
+  void loadAllRecipes()
+    .then((r) => {
+      recipesCache = r;
+    })
+    .catch(() => {
+      /* ensureRecipes tenta de novo ao usar receitas */
+    });
 }
 
 function render(root: HTMLElement): void {
@@ -567,10 +552,6 @@ function renderHome(shell: HTMLElement): void {
   goRecipes.addEventListener('click', () => void openResults());
   shell.appendChild(goRecipes);
 
-  const adWrap = document.createElement('div');
-  shell.appendChild(adWrap);
-  void renderHomeUnlockCard(adWrap);
-
   renderHomeSettingsButton(shell);
 
   const note = document.createElement('p');
@@ -578,31 +559,6 @@ function renderHome(shell: HTMLElement): void {
   note.textContent =
     'Dica de amigo: na primeira vez a leitura da foto pode pedir internet pra baixar umas coisinhas; depois costuma rodar mais offline.';
   shell.appendChild(note);
-
-  if (import.meta.env.DEV) {
-    const dev = document.createElement('div');
-    dev.className =
-      'mt-4 flex flex-col gap-1 rounded-xl border border-dashed border-app-border p-3 text-xs text-app-muted';
-    dev.textContent =
-      'Dev: atalhos — simular anúncio do dia ou “compra” fake no armazenamento local.';
-    const row = document.createElement('div');
-    row.className = 'mt-3 flex flex-col gap-2';
-    const bAd = btnSecondary('Simular anúncio do dia', () => {
-      recordDailyAdUnlock();
-      recipesCache = null;
-      rerender();
-    });
-    const bSku = btnSecondary('Simular desbloqueio permanente (localStorage)', () => {
-      devGrantSku(ENTITLEMENT_SKU_BR);
-      recipesCache = null;
-      showToast('Desbloqueio permanente de teste ativo. Recarrega as receitas.', 'success');
-      rerender();
-    });
-    row.appendChild(bAd);
-    row.appendChild(bSku);
-    dev.appendChild(row);
-    shell.appendChild(dev);
-  }
 
   if (isDevUnlockAll()) {
     const p = document.createElement('p');

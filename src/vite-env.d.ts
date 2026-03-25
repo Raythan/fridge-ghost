@@ -4,8 +4,8 @@
 interface ImportMetaEnv {
   readonly VITE_LICENSE_API_URL?: string;
   readonly VITE_DEV_UNLOCK_ALL?: string;
-  /** Segundos mínimos na tela do anúncio simulado (produção: troca por SDK real). */
-  readonly VITE_AD_MIN_SECONDS?: string;
+  /** `dono/repo` para link “nova issue” do feedback (forks: sobrescrever). */
+  readonly VITE_FEEDBACK_REPO?: string;
 }
 
 interface ImportMeta {

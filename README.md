@@ -70,11 +70,11 @@ Resolver dois problemas diários ao mesmo tempo:
 - Tailwind CSS para interface bonita e responsiva
 - PWA (instalável no celular)
 
-### Monetização (receitas extras)
-- Base gratuita em `recipes-free.json`; pacote extra em `recipes-premium.json` no mesmo host.
-- **1 anúncio recompensado por dia** (calendário local): após assistir, o app libera o catálogo completo até a meia-noite no fuso do aparelho — sem servidor obrigatório.
-- A UI usa um **slot simulado** com tempo mínimo na tela; em produção você troca pelo SDK da rede (ex.: AdMob na Web ou no app nativo).
-- Opcional em dev: `VITE_DEV_UNLOCK_ALL=true` ou botões de teste para simular anúncio / desbloqueio gravado em `localStorage`.
+### Receitas e feedback
+- Catálogo: `data/recipes-free.json` + `data/recipes-premium.json` — o app **carrega tudo ao abrir** (sem paywall).
+- **Feedback**: em **Configurações** → **Enviar feedback** o usuário preenche um texto e o app abre o GitHub em **nova issue** (título + corpo prontos). Crie no repositório a label **`feedback`** para classificar (se a label não existir, o GitHub ignora o parâmetro).
+- Variável opcional: `VITE_FEEDBACK_REPO=dono/repo` para forks apontarem para o repositório certo (padrão: `Raythan/fridge-ghost`).
+- Dev: `VITE_DEV_UNLOCK_ALL=true` mantém atalhos de desenvolvimento no cliente.
 
 ### Deploy (GitHub Actions)
 
