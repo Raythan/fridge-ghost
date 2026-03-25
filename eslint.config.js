@@ -3,6 +3,21 @@ import tseslint from 'typescript-eslint';
 import globals from 'globals';
 
 export default tseslint.config(
+  {
+    ignores: [
+      'dist/**',
+      'dev-dist/**',
+      'node_modules/**',
+      'public/**',
+      '.github/**',
+      '**/*.md',
+      '**/*.json',
+      '**/*.yml',
+      '**/*.yaml',
+      '**/*.svg',
+      '**/*.png',
+    ],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -15,8 +30,5 @@ export default tseslint.config(
     languageOptions: {
       globals: { ...globals.node },
     },
-  },
-  {
-    ignores: ['dist/**', 'dev-dist/**'],
   }
 );

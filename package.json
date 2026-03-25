@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint .",
+    "lint": "eslint src scripts eslint.config.js vite.config.ts tailwind.config.js postcss.config.js",
     "validate-recipes": "node scripts/validate-recipes.mjs",
     "import-recipes-afrodite": "node scripts/build-recipes-from-afrodite.mjs"
   },
