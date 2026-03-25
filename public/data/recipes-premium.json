@@ -1,0 +1,49 @@
+{
+  "recipes": [
+    {
+      "id": "premium-moqueca",
+      "name": "Moqueca rápida (pacote premium)",
+      "prepTimeMinutes": 40,
+      "difficulty": "medium",
+      "ingredients": [
+        { "name": "Peixe", "nameNormalized": "peixe" },
+        { "name": "Leite de coco", "nameNormalized": "leite de coco" },
+        { "name": "Tomate", "nameNormalized": "tomate" },
+        { "name": "Cebola", "nameNormalized": "cebola" },
+        { "name": "Pimentão", "nameNormalized": "pimentao" },
+        { "name": "Coentro", "nameNormalized": "coentro", "optional": true },
+        { "name": "Azeite de dendê", "nameNormalized": "azeite de dende", "optional": true },
+        { "name": "Sal", "nameNormalized": "sal" }
+      ],
+      "steps": [
+        "Tempere o peixe com sal e limão se tiver.",
+        "Monte camadas de legumes e peixe na panela.",
+        "Cozinhe com leite de coco em fogo médio até o peixe ficar macio."
+      ],
+      "tags": ["nordeste"]
+    },
+    {
+      "id": "premium-feijao-tropeiro",
+      "name": "Feijão tropeiro mineiro",
+      "prepTimeMinutes": 35,
+      "difficulty": "medium",
+      "ingredients": [
+        { "name": "Feijão cozido", "nameNormalized": "feijao" },
+        { "name": "Farinha de mandioca", "nameNormalized": "farinha de mandioca" },
+        { "name": "Linguiça ou bacon", "nameNormalized": "linguica" },
+        { "name": "Ovos", "nameNormalized": "ovo" },
+        { "name": "Alho", "nameNormalized": "alho" },
+        { "name": "Cebola", "nameNormalized": "cebola" },
+        { "name": "Óleo", "nameNormalized": "oleo" },
+        { "name": "Couve", "nameNormalized": "couve", "optional": true },
+        { "name": "Sal", "nameNormalized": "sal" }
+      ],
+      "steps": [
+        "Frite linguiça, depois alho e cebola.",
+        "Adicione ovos mexidos, feijão escorrido e farofa de mandioca.",
+        "Finalize com couve refogada se tiver."
+      ],
+      "tags": ["mineira"]
+    }
+  ]
+}

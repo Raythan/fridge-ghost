@@ -1,8 +1,5 @@
-# FridgeGhost + ReceitaImprovisada  
+# Pra Já  
 **Um app 100% offline que transforma sua geladeira em chef particular**
-
-### Nome Sugerido
-**FridgeChef** (ou **GeladeiraMágica**)
 
 ### Descrição em uma frase
 Fotografe sua geladeira ou digite os ingredientes que você tem → o app (rodando inteiramente no seu celular) te mostra imediatamente o que está prestes a vencer e gera receitas deliciosas e rápidas usando **apenas** o que você já possui.
@@ -34,7 +31,7 @@ Resolver dois problemas diários ao mesmo tempo:
      - Itens que vencem em até 7 dias (amarelo)
 
 4. **Geração de Receitas**
-   - Banco de ~200 receitas simples embutido no app (JSON estático)
+   - Banco de **200+ receitas** em PT-BR no JSON estático (`public/data/recipes-free.json`): curadoria própria + dados normalizados a partir do projeto aberto [Afrodite.json](https://github.com/adrianosferreira/afrodite.json) (agregado em português). Para refazer o merge: coloque `afrodite.json` em `scripts/.cache/` e rode `npm run import-recipes-afrodite`.
    - Cada receita contém: nome, tempo de preparo, dificuldade, ingredientes necessários e modo de preparo
    - Algoritmo simples em JavaScript:
      - Calcula quantos ingredientes da receita o usuário já tem (match %)
@@ -73,9 +70,11 @@ Resolver dois problemas diários ao mesmo tempo:
 - Tailwind CSS para interface bonita e responsiva
 - PWA (instalável no celular)
 
-### Monetização Futura (opcional e sem servidor)
-- Versão gratuita com 200 receitas
-- Compra única de “pacote de 500 receitas brasileiras” ou receitas regionais (Nordeste, Mineira, etc.)
+### Monetização (receitas extras)
+- Base gratuita em `recipes-free.json`; pacote extra em `recipes-premium.json` no mesmo host.
+- **1 anúncio recompensado por dia** (calendário local): após assistir, o app libera o catálogo completo até a meia-noite no fuso do aparelho — sem servidor obrigatório.
+- A UI usa um **slot simulado** com tempo mínimo na tela; em produção você troca pelo SDK da rede (ex.: AdMob na Web ou no app nativo).
+- Opcional em dev: `VITE_DEV_UNLOCK_ALL=true` ou botões de teste para simular anúncio / desbloqueio gravado em `localStorage`.
 
 ### Por que isso é poderoso e simples
 - Todo mundo abre a geladeira e pensa “o que faço com isso?”
