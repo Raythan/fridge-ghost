@@ -23,11 +23,15 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      # NODE_ENV=production no runner faz npm ci pular devDependencies → sem tsc/vite.
       - run: npm ci
+        env:
+          NODE_ENV: development
       - run: npm run validate-recipes
       - run: npm run build
         env:
           BASE_URL: /${{ github.event.repository.name }}/
+          NODE_ENV: production
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

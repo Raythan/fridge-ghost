@@ -16,8 +16,11 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+        env:
+          NODE_ENV: development
       - run: npm run lint
       - run: npm run validate-recipes
       - run: npm run build
         env:
           BASE_URL: /
+          NODE_ENV: production
