@@ -970,7 +970,7 @@ function renderPhoto(shell: HTMLElement): void {
     'space-y-2 border-t border-app-border px-3 py-3 text-xs leading-relaxed text-app-muted';
   const tipLines = [
     'Fruta, verdura, pão… muita coisa não tem letra nenhuma. Usa o campo “Itens extras” ali embaixo.',
-    'Luz boa e sem reflexo forte ajudam. Manda ver de frente pro rótulo.',
+    'Luz boa, sem reflexo forte, e câmera mais perto do rótulo (nome e validade) ajudam a leitura automática.',
     'Geladeira lotada? Uma foto por prateleira (ou da porta) costuma funcionar melhor — vai processando aos poucos.',
     'Se vier texto esquisito, apaga o que não for comida e separa os ingredientes com vírgula.',
     'Combina com a tela de escrever ou com a voz pra fechar a lista com o que a foto não pegou.',
